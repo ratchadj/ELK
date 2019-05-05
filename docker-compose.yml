@@ -1,0 +1,37 @@
+version: "3.0"
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.2.2
+    ports:
+      - 9200:9200
+      - 9300:9300
+    container_name: elasticsearch    
+    environment:
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    # volumes:
+    # - $PWD/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+    # - $PWD/es-data:/usr/share/elasticsearch/data
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.2.2
+    ports:
+      - 5601:5601
+    container_name: kibana
+    volumes:
+      - $PWD/kibana/config/kibana.yml:/etc/kibana/kibana.yml
+    links:
+      - elasticsearch:elasticsearch
+    depends_on:
+      - elasticsearch
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.2.2
+    container_name: logstash
+    command: logstash -f /config/
+    environment:
+      - JAVA_OPTS=-Xms1g -Xmx1g
+    volumes:
+      - $PWD/logstash/config:/config
+      - $PWD/var/log/nginx:/var/log/nginx
+    links:
+      - elasticsearch:elasticsearch
+    depends_on:
+      - elasticsearch
